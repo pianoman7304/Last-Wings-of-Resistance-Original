@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="left-up" width="14" height="100" tilewidth="60" tileheight="60" nextobjectid="1">
+ <tileset firstgid="1" name="Landscape" tilewidth="60" tileheight="60" tilecount="16">
+  <image source="../Resources-1942-96/Resources from &quot;FlyAwayMissionEditor1.0&quot;/'PICT'/05000.png" width="240" height="240"/>
+ </tileset>
+ <tileset firstgid="17" name="Enemy-Atlas-01" tilewidth="60" tileheight="60" tilecount="14">
+  <image source="Enemy-Atlas-01.png" width="60" height="842"/>
+ </tileset>
+ <layer name="Kachelebene 1" width="14" height="100">
+  <data encoding="base64" compression="zlib">
+   eJztWNmOwjAMLHtAy7X9/68lSB3JGnlquyDYoj6MaGNPfDQxTnZd1+0cfDV8C9kcNt7/xKXhuoBzatjT2O80F54Zd85Pw9nYHBuO0xjkc7A2ezM+NBwmHAs8NR7JbQwVHrg2Hx7vIuRRXhRnoLzwuwJ/l7nvlJ0zsvEOrNH3yGclj3zOxrTGnL1qjVjdSrzV3Hg+zY3hF3aUn6zH+vzO4yoHat4oB56/bDu75j3beD4IcO1kufcfiRoP/T9Hj9EbGxl95u0LHPCqtsCr2vL6hgzQI1R54FZj21AH+shsPwk9rKNoPSn9iHeXY29XeaglGV7kn+J5elyfzsm4uAceEnHx/lD7pRf6EZbUiUd4n7bfvXNUBu/ulTZsWAuiuwMFW5/GAhfnf74XeVYszzqTLckL95JjYo6o//RyC05073YSdiIe5+a6gGfXCHiK+2reDUpSFuA=
+  </data>
+ </layer>
+ <layer name="Kachelebene 2" width="14" height="100">
+  <data encoding="base64" compression="zlib">
+   eJztzDENAAAIA7B5wL9XTJCFoxXQBIAr8/Rq3gAAAEDPArMdADo=
+  </data>
+ </layer>
+ <objectgroup name="Objektebene 1"/>
+</map>
