@@ -41,7 +41,7 @@ class MainMenuScene: SKScene {
         for node in menuSpriteNodes { node.removeFromParent() }
         menuSpriteNodes.removeAll()
         // Button titles in order
-        let buttonTitles = ["Take off!", "Intel", "Story", "Controls", "Quit"]
+        let buttonTitles = ["Take Off", "Intel", "Diary", "Flight Manual", "Quit"]
         let buttonNames = ["newGame", "intel", "story", "controls", "quit"]
         let buttonSpacing: CGFloat = 60 // vertical spacing between buttons
         let startY = size.height - 200 // starting Y position for the first button
@@ -56,7 +56,18 @@ class MainMenuScene: SKScene {
 
     func updateMenuSelection() {
         for (i, node) in menuSpriteNodes.enumerated() {
-            node.alpha = (i == selectedMenuIndex) ? 0.6 : 1.0
+            // Change color to red for selected, white for others
+            for child in node.children {
+                if let sprite = child as? SKSpriteNode {
+                    if i == selectedMenuIndex {
+                        sprite.color = .red
+                        sprite.colorBlendFactor = 1.0
+                    } else {
+                        sprite.color = .white
+                        sprite.colorBlendFactor = 1.0
+                    }
+                }
+            }
         }
     }
 

@@ -4,12 +4,10 @@ class StoryScene: SKScene {
     let storyImages = ["story1of3E", "story2of3E", "story3of3E"]
     var currentIndex = 0
     var imageNode: SKSpriteNode?
-    var nextButton: SKLabelNode?
 
     override func didMove(to view: SKView) {
         backgroundColor = .black
         showCurrentImage()
-        addNextButton()
     }
 
     func showCurrentImage() {
@@ -24,18 +22,6 @@ class StoryScene: SKScene {
         sprite.setScale(min(scaleX, scaleY))
         addChild(sprite)
         imageNode = sprite
-    }
-
-    func addNextButton() {
-        nextButton?.removeFromParent()
-        let button = SKLabelNode(text: "Next")
-        button.fontName = "Courier-Bold"
-        button.fontSize = 32
-        button.position = CGPoint(x: size.width - 80, y: 60)
-        button.zPosition = 2
-        button.name = "nextButton"
-        addChild(button)
-        nextButton = button
     }
 
     func goToNext() {
@@ -59,18 +45,12 @@ class StoryScene: SKScene {
     }
 
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 49 { // Space bar
+        if event.keyCode == 49 || event.keyCode == 36 { // Space bar or Enter
             goToNext()
         }
     }
 
     override func mouseDown(with event: NSEvent) {
-        let location = event.location(in: self)
-        let nodes = self.nodes(at: location)
-        for node in nodes {
-            if node.name == "nextButton" {
-                goToNext()
-            }
-        }
+        // Empty: next button removed
     }
 }

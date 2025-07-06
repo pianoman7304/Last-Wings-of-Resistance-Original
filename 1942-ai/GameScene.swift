@@ -490,54 +490,114 @@ class GameScene: SKScene {
         run(sound)
     }
 
+    // --- Custom Exit Popup State ---
+    var customExitPopupNode: SKNode? = nil
+    var exitPopupSelection: Int = 0 // 0 = Stay, 1 = Leave
+
+    // --- Custom Exit Popup ---
+    func showCustomExitPopup() {
+        guard customExitPopupNode == nil else { return }
+        
+        // Use the helper function to create the dialog
+        let dialogNode = HelperFunctions.createCustomDialog(
+            question: "Leave the mission?",
+            options: ["Stay", "Leave"]
+        )
+        dialogNode.name = "customExitPopupNode"
+        
+        // Show the dialog using the generic handler
+        showCustomDialog(node: dialogNode, options: ["Stay", "Leave"])
+    }
+
+    func updateCustomExitPopupSelection() {
+        guard let container = customExitPopupNode,
+              let optionsNode = container.childNode(withName: "optionsNode") else { return }
+
+        // The text is: "Stay - Leave"
+        let optionsText = "Stay - Leave"
+        let stayText = "Stay"
+        let leaveText = "Leave"
+
+        guard let stayRange = optionsText.range(of: stayText),
+              let leaveRange = optionsText.range(of: leaveText) else { return }
+
+        let stayStartIndex = optionsText.distance(from: optionsText.startIndex, to: stayRange.lowerBound)
+        let leaveStartIndex = optionsText.distance(from: optionsText.startIndex, to: leaveRange.lowerBound)
+
+        let sprites = optionsNode.children.compactMap { $0 as? SKSpriteNode }
+        for (i, sprite) in sprites.enumerated() {
+            // Reset color to white first
+            sprite.color = .white
+            sprite.colorBlendFactor = 1.0
+
+            if exitPopupSelection == 0 { // Stay selected
+                if i >= stayStartIndex && i < stayStartIndex + stayText.count {
+                    sprite.color = .red
+                }
+            } else { // Leave selected
+                if i >= leaveStartIndex && i < leaveStartIndex + leaveText.count {
+                    sprite.color = .red
+                }
+            }
+        }
+    }
+
+    func removeCustomExitPopup() {
+        customExitPopupNode?.removeFromParent()
+        customExitPopupNode = nil
+        isGamePaused = false
+    }
+
     override func keyDown(with event: NSEvent) {
-        // Dialog handling: allow space/return/enter for OK, escape for stay in exit dialog
-        if let missionError = self.childNode(withName: "missionFileErrorPopup"), missionError.isHidden == false {
-            if event.keyCode == 49 || event.keyCode == 36 { // Space or Return
-                self.childNode(withName: "missionFileErrorOKButton")?.run(SKAction.sequence([
-                    SKAction.scale(to: 0.95, duration: 0.05),
-                    SKAction.scale(to: 1.0, duration: 0.05),
-                    SKAction.run { missionError.removeFromParent() }
-                ]))
-                return
+        // Custom Exit Popup handling
+        if let popup = customExitPopupNode {
+            let options = (popup.userData?["options"] as? [String]) ?? []
+
+            if options.count > 1 { // For dialogs with multiple options like "Stay/Leave"
+                switch event.keyCode {
+                case 123, 124: // Left, Right
+                    exitPopupSelection = 1 - exitPopupSelection
+                    updateCustomExitPopupSelection()
+                case 36, 49: // Return, Space
+                    if exitPopupSelection == 0 { // Stay
+                        removeCustomExitPopup()
+                    } else { // Leave
+                        if let view = self.view {
+                            let menuScene = MainMenuScene(size: CGSize(width: 1024, height: 640))
+                            menuScene.scaleMode = .aspectFill
+                            view.presentScene(menuScene, transition: SKTransition.fade(withDuration: 1.0))
+                        }
+                    }
+                case 53: // Escape
+                    removeCustomExitPopup() // Always treat as "Stay"
+                default: break
+                }
+            } else { // For single-option dialogs like "OK"
+                switch event.keyCode {
+                case 36, 49: // Return, Space
+                    // Find the action associated with the OK button
+                    if popup.name == "gameOverPopup" || popup.name == "missionCompletedPopup" {
+                        if let view = self.view {
+                            let menuScene = MainMenuScene(size: CGSize(width: 1024, height: 640))
+                            menuScene.scaleMode = .aspectFill
+                            view.presentScene(menuScene, transition: SKTransition.fade(withDuration: 1.0))
+                        }
+                    } else { // missionFileErrorPopup
+                        removeCustomExitPopup()
+                    }
+                default: break
+                }
             }
+            return // Stop further key processing
         }
-        if let gameOver = self.childNode(withName: "gameOverPopup"), gameOver.isHidden == false {
-            if event.keyCode == 49 || event.keyCode == 36 { // Space or Return
-                self.childNode(withName: "gameOverOKButton")?.run(SKAction.sequence([
-                    SKAction.scale(to: 0.95, duration: 0.05),
-                    SKAction.scale(to: 1.0, duration: 0.05),
-                    SKAction.run { gameOver.removeFromParent() }
-                ]))
-                return
-            }
-        }
-        if let missionCompleted = self.childNode(withName: "missionCompletedPopup"), missionCompleted.isHidden == false {
-            if event.keyCode == 49 || event.keyCode == 36 { // Space or Return
-                self.childNode(withName: "missionCompletedOKButton")?.run(SKAction.sequence([
-                    SKAction.scale(to: 0.95, duration: 0.05),
-                    SKAction.scale(to: 1.0, duration: 0.05),
-                    SKAction.run { missionCompleted.removeFromParent() }
-                ]))
-                return
-            }
-        }
-        if let exitPopup = self.childNode(withName: "exitPopup"), exitPopup.isHidden == false {
-            if event.keyCode == 53 { // Escape
-                self.childNode(withName: "stayMission")?.run(SKAction.sequence([
-                    SKAction.scale(to: 0.95, duration: 0.05),
-                    SKAction.scale(to: 1.0, duration: 0.05),
-                    SKAction.run { exitPopup.removeFromParent(); self.isGamePaused = false }
-                ]))
-                return
-            }
-        }
+
+        // Normal game key handling
         switch event.keyCode {
         case 123: moveDirection.dx = -1
         case 124: moveDirection.dx = 1
         case 125: moveDirection.dy = -1
         case 126: moveDirection.dy = 1
-        case 53: showExitPopup(); return
+        case 53: showCustomExitPopup(); return
         default: break
         }
     }
@@ -698,8 +758,8 @@ class GameScene: SKScene {
                         run(sound)
                         
                         // Show "Life Lost!" text in the middle of the screen
-                        let lifeTextNode = HelperFunctions.writeTextWithSprites("Life Lost!", charSize: CGSize(width: 36, height: 36), spacing: 4)
-                        lifeTextNode.position = CGPoint(x: size.width/2 - lifeTextNode.calculateAccumulatedFrame().width/2, y: size.height/2)
+                        let lifeTextNode = HelperFunctions.writeTextWithSprites("Life Lost!", charSize: CGSize(width: 24, height: 24), spacing: 4)
+                        lifeTextNode.position = CGPoint(x: size.width/2 - lifeTextNode.calculateAccumulatedFrame().width/2, y: size.height/2-50)
                         lifeTextNode.zPosition = 2002
                         lifeTextNode.name = "lifeLostText"
                         addChild(lifeTextNode)
@@ -814,5 +874,31 @@ class GameScene: SKScene {
 
     func dismissPauseDialog() {
         self.childNode(withName: "pauseOverlay")?.removeFromParent()
+    }
+    
+    func showCustomDialog(node: SKNode, options: [String]) {
+        isGamePaused = true
+        exitPopupSelection = 0
+
+        // Store options in userData for the keyDown handler
+        node.userData = ["options": options]
+
+        // Place the popup in the center of the screen
+        node.position = CGPoint(x: size.width/2, y: size.height/2)
+        addChild(node)
+        customExitPopupNode = node
+
+        if options.count == 1 {
+            // Single option dialog, like "OK". Color it red immediately.
+            if let optionsNode = node.childNode(withName: "optionsNode") {
+                for case let sprite as SKSpriteNode in optionsNode.children {
+                    sprite.color = .red
+                    sprite.colorBlendFactor = 1.0
+                }
+            }
+        } else {
+            // Multi-option dialog, like "Stay / Leave". Use selection logic.
+            updateCustomExitPopupSelection()
+        }
     }
 }

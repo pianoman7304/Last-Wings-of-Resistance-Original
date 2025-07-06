@@ -67,6 +67,28 @@ class HelperFunctions {
         }
         return node
     }
+
+    // --- Custom Dialog Creation ---
+    static func createCustomDialog(question: String, options: [String]) -> SKNode {
+        let container = SKNode()
+        container.zPosition = 3000
+
+        // Create question node
+        let questionNode = writeTextWithSprites(question, charSize: CGSize(width: 28, height: 28), spacing: 2)
+        let questionWidth = questionNode.calculateAccumulatedFrame().width
+        questionNode.position = CGPoint(x: -questionWidth / 2, y: 20) // Centered, upper line
+        container.addChild(questionNode)
+
+        // Create options node
+        let optionsString = options.joined(separator: " - ")
+        let optionsNode = writeTextWithSprites(optionsString, charSize: CGSize(width: 28, height: 28), spacing: 2)
+        optionsNode.name = "optionsNode" // Name it for easy access
+        let optionsWidth = optionsNode.calculateAccumulatedFrame().width
+        optionsNode.position = CGPoint(x: -optionsWidth / 2, y: -30) // Centered, lower line
+        container.addChild(optionsNode)
+        
+        return container
+    }
     
     static func loadExplosionFrames() -> [SKTexture] {
         let imageName = "explosion.png"
@@ -121,39 +143,6 @@ extension GameScene {
             print("SpaceGame.caf not found in bundle.")
         }
     }
-    
-    func showExitPopup() { //Escape Button
-        isGamePaused = true
-        let popup = SKShapeNode(rectOf: CGSize(width: size.width * 0.4, height: size.height * 0.15), cornerRadius: 12)
-        popup.fillColor = .black
-        popup.alpha = 0.85
-        popup.zPosition = 3000
-        popup.name = "exitPopup"
-        popup.position = CGPoint(x: size.width/2, y: size.height/2)
-        addChild(popup)
-        let label = SKLabelNode(text: "Leave the mission?")
-        label.fontName = "Courier Bold"
-        label.fontSize = 18
-        label.position = CGPoint(x: 0, y: 22)
-        label.zPosition = 3001
-        popup.addChild(label)
-        let leaveButton = SKLabelNode(text: "Leave")
-        leaveButton.name = "leaveMission"
-        leaveButton.fontName = "Courier-Bold"
-        leaveButton.fontSize = 16
-        leaveButton.fontColor = .red
-        leaveButton.position = CGPoint(x: -50, y: -18)
-        leaveButton.zPosition = 3001
-        popup.addChild(leaveButton)
-        let stayButton = SKLabelNode(text: "Stay")
-        stayButton.name = "stayMission"
-        stayButton.fontName = "Courier-Bold"
-        stayButton.fontSize = 16
-        stayButton.fontColor = .green
-        stayButton.position = CGPoint(x: 50, y: -18)
-        stayButton.zPosition = 3001
-        popup.addChild(stayButton)
-    }
 
     func stopBackgroundMusic() {
         backgroundMusicPlayer?.stop()
@@ -162,99 +151,21 @@ extension GameScene {
     
     // Show a red error dialog if the mission file is not found or is the wrong length
     func showMissionFileErrorDialog() {
-        let popup = SKShapeNode(rectOf: CGSize(width: size.width * 0.5, height: size.height * 0.15), cornerRadius: 12)
-        popup.fillColor = .red
-        popup.alpha = 0.92
-        popup.zPosition = 3000
-        popup.name = "missionFileErrorPopup"
-        popup.position = CGPoint(x: size.width/2, y: size.height/2)
-        addChild(popup)
-        let label = SKLabelNode(text: "Mission file not loading!")
-        label.fontName = "Courier New"
-        label.fontSize = 22
-        label.fontColor = .white
-        label.position = CGPoint(x: 0, y: 0)
-        label.zPosition = 3001
-        popup.addChild(label)
-        // Add OK button for keyboard handling
-        let okButton = SKLabelNode(text: "OK")
-        okButton.name = "missionFileErrorOKButton"
-        okButton.fontName = boldFont(size: 20)
-        okButton.fontSize = 20
-        okButton.fontColor = .green
-        okButton.position = CGPoint(x: 0, y: -32)
-        okButton.zPosition = 3001
-        popup.addChild(okButton)
+        let dialogNode = HelperFunctions.createCustomDialog(question: "Mission file not loading!", options: ["OK"])
+        dialogNode.name = "missionFileErrorPopup"
+        showCustomDialog(node: dialogNode, options: ["OK"])
     }
 
     func showGameOverDialog() {
-        isGamePaused = true
-        let popup = SKShapeNode(rectOf: CGSize(width: size.width * 0.5, height: size.height * 0.22), cornerRadius: 16)
-        popup.fillColor = .black
-        popup.alpha = 0.92
-        popup.zPosition = 3000
-        popup.name = "gameOverPopup"
-        popup.position = CGPoint(x: size.width/2, y: size.height/2)
-        addChild(popup)
-        let label = SKLabelNode(text: "Game Over! You died!")
-        label.fontName = boldFont(size: 32)
-        label.fontSize = 32
-        label.fontColor = .red
-        label.position = CGPoint(x: 0, y: 32)
-        label.zPosition = 3001
-        popup.addChild(label)
-        let scoreLabel = SKLabelNode(text: "Score: \(score)")
-        scoreLabel.fontName = boldFont(size: 22)
-        scoreLabel.fontSize = 22
-        scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 0, y: -8)
-        scoreLabel.zPosition = 3001
-        popup.addChild(scoreLabel)
-        // Rename button for keyboard handling
-        let okButton = SKLabelNode(text: "OK - Grrrr!")
-        okButton.name = "gameOverOKButton"
-        okButton.fontName = boldFont(size: 20)
-        okButton.fontSize = 20
-        okButton.fontColor = .green
-        okButton.position = CGPoint(x: 0, y: -48)
-        okButton.zPosition = 3001
-        popup.addChild(okButton)
+        let dialogNode = HelperFunctions.createCustomDialog(question: "Game Over! You died!", options: ["OK"])
+        dialogNode.name = "gameOverPopup"
+        showCustomDialog(node: dialogNode, options: ["OK"])
     }
     
     func showMissionCompletedDialog() {
-        isGamePaused = true
-        let popup = SKShapeNode(rectOf: CGSize(width: size.width * 0.5, height: size.height * 0.22), cornerRadius: 16)
-        popup.fillColor = .black
-        popup.alpha = 0.92
-        popup.zPosition = 3000
-        popup.name = "missionCompletedPopup"
-        popup.position = CGPoint(x: size.width/2, y: size.height/2)
-        addChild(popup)
-        
-        let label = SKLabelNode(text: "Mission completed!")
-        label.fontName = boldFont(size: 28)
-        label.fontSize = 28
-        label.fontColor = .green
-        label.position = CGPoint(x: 0, y: 32)
-        label.zPosition = 3001
-        popup.addChild(label)
-        
-        let scoreLabel = SKLabelNode(text: "Score: \(score)")
-        scoreLabel.fontName = boldFont(size: 22)
-        scoreLabel.fontSize = 22
-        scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 0, y: -8)
-        scoreLabel.zPosition = 3001
-        popup.addChild(scoreLabel)
-        
-        let okButton = SKLabelNode(text: "OK")
-        okButton.name = "missionCompletedOKButton"
-        okButton.fontName = boldFont(size: 20)
-        okButton.fontSize = 20
-        okButton.fontColor = .green
-        okButton.position = CGPoint(x: 0, y: -48)
-        okButton.zPosition = 3001
-        popup.addChild(okButton)
+        let dialogNode = HelperFunctions.createCustomDialog(question: "Mission completed!", options: ["OK"])
+        dialogNode.name = "missionCompletedPopup"
+        showCustomDialog(node: dialogNode, options: ["OK"])
     }
     
     // Runs the explosion animation at a given position in the scene
