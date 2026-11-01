@@ -1,13 +1,19 @@
 import SpriteKit
-import AppKit
 import AVFoundation
+#if os(macOS)
+    import AppKit
+#elseif os(iOS)
+    import UIKit
+#endif
 
 class MainMenuScene: SKScene {
     var buttonNodes: [SKLabelNode] = []
     var originalColors: [SKLabelNode: SKColor] = [:]
     
+    #if os(macOS)
     var intelWindow: NSWindow?
     var controlsWindow: NSWindow?
+    #endif
     
     var backgroundMusicPlayer: AVAudioPlayer?
     
@@ -15,25 +21,82 @@ class MainMenuScene: SKScene {
     var selectedMenuIndex: Int = 0
 
     override func didMove(to view: SKView) {
-        // Remove all full screen logic from main menu scene
+        
+        //Add background image, always fill the scene
         let bg = SKSpriteNode(imageNamed: "start-page.png")
-        bg.position = CGPoint(x: size.width/2, y: size.height/2)
-        bg.size = size
+        bg.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        bg.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        bg.size = size // Always fill the scene
         bg.zPosition = -1
+        bg.texture?.filteringMode = .nearest
         addChild(bg)
         backgroundColor = .black
-        createMenu()
-        playBackgroundMusic()
+        
+        // Add game controller support for macOS and iOS and tvOS
+        ControllerInputHandler.shared.registerMainMenuScene(self)
+
+        // Use a base width (e.g., 1024) for scaling reference
+        HelperFunctions.scaleFactor = size.width / HelperFunctions.preferredSceneSize.width  * 3.0 // Double the scale factor for larger images
         
         // Add game title at the top using writeTextWithSprites
         let titleNode = HelperFunctions.writeTextWithSprites("Last Wings of the Resistance", charSize: CGSize(width: 24, height: 24), spacing: 2.0)
-        titleNode.position = CGPoint(x: 50, y: size.height - 120)
+        titleNode.position = CGPoint(x: 20 * HelperFunctions.scaleFactor , y: size.height - 40 * HelperFunctions.scaleFactor )
         titleNode.zPosition = 10
         addChild(titleNode)
         
-        // Select the first menu item by default
-        selectedMenuIndex = 0
+        playBackgroundMusic()
+        
+        // create menu
+        createMenu()
+        selectedMenuIndex = 0 // Select the first menu item by default
         updateMenuSelection()
+        
+        // Add credits in very small font, lower right corner, half transparent
+        let creditsText = "Credits:\nFamily Wyrsch Summer Project 2025\nIdea, Design & Coding: OW + 2 Bots\nMission Design, Enhancements & Testing: NW & UW"
+        let creditsLabel = SKLabelNode(text: creditsText)
+        creditsLabel.fontName = "AvenirNext-Regular"
+        creditsLabel.fontSize = 4 * HelperFunctions.scaleFactor
+        creditsLabel.fontColor = SKColor.white
+        creditsLabel.alpha = 0.5
+        creditsLabel.horizontalAlignmentMode = .right
+        creditsLabel.verticalAlignmentMode = .bottom
+        creditsLabel.numberOfLines = 2
+        creditsLabel.preferredMaxLayoutWidth = size.width * 0.5
+        creditsLabel.position = CGPoint(x: size.width - 10 * HelperFunctions.scaleFactor, y: 10 * HelperFunctions.scaleFactor)
+        creditsLabel.zPosition = 100
+        addChild(creditsLabel)
+        
+        // Count mission files in Resources/Missions
+        let missionFiles = Bundle.main.paths(forResourcesOfType: "txt", inDirectory: nil)
+            .filter { $0.contains("Mission ") }
+        let missionNames = missionFiles.map { URL(fileURLWithPath: $0).deletingPathExtension().lastPathComponent }
+        let missionCount = missionNames.count
+
+        // Add mission count label, styled like credits, on the same line as the 4th line of credits
+        let missionsLabel = SKLabelNode(text: String(format: "Missions loaded: %02d", missionCount))
+        missionsLabel.fontName = "AvenirNext-Regular"
+        missionsLabel.fontSize = 4 * HelperFunctions.scaleFactor
+        missionsLabel.fontColor = SKColor.white
+        missionsLabel.alpha = 0.5
+        missionsLabel.horizontalAlignmentMode = .left
+        missionsLabel.verticalAlignmentMode = .bottom
+        // Place it below the credits label, adjust as needed for your font size/spacing
+        missionsLabel.position = CGPoint(x: 20 * HelperFunctions.scaleFactor, y: 10 * HelperFunctions.scaleFactor + 10 * HelperFunctions.scaleFactor)
+        missionsLabel.zPosition = 100
+        addChild(missionsLabel)
+        
+        // Add controller connection status label below missionsLabel
+        let controllerStatusText = ControllerInputHandler.isControllerAvailable() ? "Controller connected" : "No controller connected"
+        let controllerStatusLabel = SKLabelNode(text: controllerStatusText)
+        controllerStatusLabel.fontName = "AvenirNext-Regular"
+        controllerStatusLabel.fontSize = 4 * HelperFunctions.scaleFactor
+        controllerStatusLabel.fontColor = SKColor.white
+        controllerStatusLabel.alpha = 0.5
+        controllerStatusLabel.horizontalAlignmentMode = .left
+        controllerStatusLabel.verticalAlignmentMode = .bottom
+        controllerStatusLabel.position = CGPoint(x: missionsLabel.position.x, y: missionsLabel.position.y - 10 * HelperFunctions.scaleFactor)
+        controllerStatusLabel.zPosition = 100
+        addChild(controllerStatusLabel)
     }
 
     func createMenu() {
@@ -41,13 +104,18 @@ class MainMenuScene: SKScene {
         for node in menuSpriteNodes { node.removeFromParent() }
         menuSpriteNodes.removeAll()
         // Button titles in order
+        #if os(iOS)
+        let buttonTitles = ["Take Off", "Intel", "Diary", "Flight Manual"]
+        let buttonNames = ["newGame", "intel", "story", "controls"]
+        #else
         let buttonTitles = ["Take Off", "Intel", "Diary", "Flight Manual", "Quit"]
         let buttonNames = ["newGame", "intel", "story", "controls", "quit"]
-        let buttonSpacing: CGFloat = 60 // vertical spacing between buttons
-        let startY = size.height - 200 // starting Y position for the first button
+        #endif
+        let buttonSpacing: CGFloat = 40 * HelperFunctions.scaleFactor  // vertical spacing between buttons
+        let startY = size.height - 100 * HelperFunctions.scaleFactor  // starting Y position for the first button
         for (i, title) in buttonTitles.enumerated() {
             let spriteNode = HelperFunctions.writeTextWithSprites(title, charSize: CGSize(width: 19, height: 19), spacing: 1.6)
-            spriteNode.position = CGPoint(x: 50, y: startY - CGFloat(i) * buttonSpacing)
+            spriteNode.position = CGPoint(x: 50, y: startY - CGFloat(i) * buttonSpacing) // Left aligned
             spriteNode.name = buttonNames[i]
             addChild(spriteNode)
             menuSpriteNodes.append(spriteNode)
@@ -70,7 +138,22 @@ class MainMenuScene: SKScene {
             }
         }
     }
-
+    
+    // game controller input handling
+    
+    func moveMenuSelection(up: Bool) {
+        if up {
+            selectedMenuIndex = (selectedMenuIndex - 1 + menuSpriteNodes.count) % menuSpriteNodes.count
+            updateMenuSelection()
+        } else {
+            selectedMenuIndex = (selectedMenuIndex + 1) % menuSpriteNodes.count
+            updateMenuSelection()
+        }
+    }
+    
+    // keys MacOS
+    
+    #if os(macOS)
     override func keyDown(with event: NSEvent) {
         switch event.keyCode {
         case 125: // Down arrow
@@ -87,6 +170,24 @@ class MainMenuScene: SKScene {
             super.keyDown(with: event)
         }
     }
+    #elseif os(iOS)
+    
+    // touches for iOS
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        for (i, node) in menuSpriteNodes.enumerated() {
+            if node.contains(location) {
+                selectedMenuIndex = i
+                updateMenuSelection()
+                handleMenuSelection()
+                break
+            }
+        }
+    }
+    
+    #endif
 
     func handleMenuSelection() {
         let selectedNode = menuSpriteNodes[selectedMenuIndex]
@@ -94,70 +195,68 @@ class MainMenuScene: SKScene {
         case "newGame":
             if let view = self.view {
                 stopBackgroundMusic()
-                let designSize = CGSize(width: 1024, height: 640)
-                let scene = GameScene(size: designSize)
-                scene.scaleMode = .aspectFill
-                view.presentScene(scene, transition: SKTransition.fade(withDuration: 1.0))
+                //let designSize = HelperFunctions.preferredSceneSize
+                HelperFunctions.transitionToGameScene(from: view, missionNumber: 1, priorMissionsScore: 0)
             }
+                 
         case "intel":
-            presentIntelScene()
-        case "story":
-            presentStoryScene()
-        case "controls":
-            presentControlsScene()
+                if let view = self.view {
+                    stopBackgroundMusic()
+                    HelperFunctions.transitionToImageSequenceScene(
+                        from: view,
+                        imageNames: ["intel.png"]
+                    )
+                    //HelperFunctions.transitionToInfoImageScene(from: view, imageName: "intel.png", title: "Intel")
+                }
+            case "story":
+                if let view = self.view {
+                    stopBackgroundMusic()
+                    HelperFunctions.transitionToImageSequenceScene(
+                        from: view,
+                        imageNames: ["story1of3E.png", "story2of3E.png", "story3of3E.png"]
+                    )
+                }
+            case "controls":
+                if let view = self.view {
+                    stopBackgroundMusic()
+                    
+                    #if os(macOS)
+                    HelperFunctions.transitionToImageSequenceScene(
+                        from: view,
+                        imageNames: ["controls-macos.png", "controls-game-controller.png"]
+                    )
+                    #endif
+                    
+                    #if os(iOS)
+                    HelperFunctions.transitionToImageSequenceScene(
+                        from: view,
+                        imageNames: ["controls-touch-screen.png", "controls-game-controller.png"]
+                    )
+                    #endif
+                    
+                    #if os(tvOS)
+                    HelperFunctions.transitionToImageSequenceScene(
+                        from: view,
+                        imageNames: ["controls-game-controller.png"]
+                    )
+                    #endif
+                }
+            case "highScores":
+                if let view = self.view {
+                    stopBackgroundMusic()
+                    HelperFunctions.transitionToHighScoreScene(from: view)
+                }
         case "quit":
+            #if os(macOS)
             stopBackgroundMusic()
             NSApplication.shared.terminate(nil)
+            #endif
         default:
             break
         }
     }
     
-    func showImageWindow(imageName: String, title: String, windowType: String) {
-        // Load the image using only the filename from the bundle
-        guard let img = NSImage(named: imageName) else {
-            let alert = NSAlert()
-            alert.messageText = "Image not found: \(imageName)"
-            alert.runModal()
-            return
-        }
-        // Double the image size for the window and image view
-        let imageSize = NSSize(width: img.size.width * 2, height: img.size.height * 2)
-        let closeButtonHeight: CGFloat = 40
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height + closeButtonHeight))
-        let imageView = NSImageView(image: img)
-        imageView.frame = NSRect(x: 0, y: closeButtonHeight, width: imageSize.width, height: imageSize.height)
-        imageView.imageScaling = .scaleAxesIndependently
-        let closeButton = NSButton(title: "Close", target: self, action: #selector(closeImageWindow(_:)))
-        closeButton.frame = NSRect(x: 10, y: 5, width: 80, height: 30)
-        contentView.addSubview(imageView)
-        contentView.addSubview(closeButton)
-        let window = NSWindow(contentRect: contentView.frame, styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.contentView = contentView
-        window.title = title
-        window.level = .floating
-        window.center()
-        window.makeKeyAndOrderFront(nil)
-        window.isReleasedWhenClosed = false // Prevent deallocation
-        if windowType == "intel" {
-            intelWindow = window
-        } else if windowType == "controls" {
-            controlsWindow = window
-        }
-    }
-
-    @objc func closeImageWindow(_ sender: Any?) {
-        if let button = sender as? NSButton, let window = button.window {
-            window.orderOut(nil)
-            if window == intelWindow { intelWindow = nil }
-            if window == controlsWindow { controlsWindow = nil }
-        }
-    }
     
-    // Add a helper function for bold fonts
-    func boldFont(size: CGFloat) -> String {
-        return "Courier-Bold"
-    }
     
     
     func playBackgroundMusic() {
@@ -181,28 +280,4 @@ class MainMenuScene: SKScene {
         backgroundMusicPlayer = nil
     }
     
-    func presentStoryScene() {
-        if let view = self.view {
-            stopBackgroundMusic()
-            let scene = StoryScene(size: view.bounds.size)
-            scene.scaleMode = .aspectFill
-            view.presentScene(scene, transition: SKTransition.fade(withDuration: 1.0))
-        }
-    }
-    func presentIntelScene() {
-        if let view = self.view {
-            stopBackgroundMusic()
-            let scene = InfoImageScene(size: view.bounds.size, imageName: "intel.png", title: "Intel")
-            scene.scaleMode = .aspectFill
-            view.presentScene(scene, transition: SKTransition.fade(withDuration: 1.0))
-        }
-    }
-    func presentControlsScene() {
-        if let view = self.view {
-            stopBackgroundMusic()
-            let scene = InfoImageScene(size: view.bounds.size, imageName: "controls.png", title: "Controls")
-            scene.scaleMode = .aspectFill
-            view.presentScene(scene, transition: SKTransition.fade(withDuration: 1.0))
-        }
-    }
 }

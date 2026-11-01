@@ -7,21 +7,27 @@
 
 
 import Cocoa
+import SpriteKit
 
-@main
+@NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-    
-    
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
-        if let window = NSApplication.shared.windows.first {
-            window.title = "Last Wings of the Resistance"
+        // The main window is created by the Main.storyboard.
+        // We need to find that window and disable its close button.
+        // We use DispatchQueue.main.async to ensure the window has been loaded.
+        DispatchQueue.main.async {
+            if let window = NSApplication.shared.mainWindow {
+                if let closeButton = window.standardWindowButton(.closeButton) {
+                    closeButton.isEnabled = false
+                }
+            }
         }
     }
-    
+
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-    
-    
+
+
 }

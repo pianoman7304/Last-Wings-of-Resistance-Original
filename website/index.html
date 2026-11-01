@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icecube App Development Studio</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f7fa;
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background: #1a2330;
+            color: #fff;
+            padding: 40px 0 30px 0;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.8em;
+            letter-spacing: 2px;
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            font-size: 1.2em;
+            color: #b0c4d6;
+            margin: 0;
+        }
+        .studio-photo {
+            display: block;
+            max-width: 700px;
+            width: 90%;
+            margin: 40px auto 30px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(30,40,60,0.13);
+        }
+        .content {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 32px 24px 24px 24px;
+        }
+        h2 {
+            color: #1a2330;
+            font-size: 1.5em;
+            margin-top: 0;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        label {
+            font-weight: 500;
+        }
+        input, textarea {
+            font-size: 1em;
+            padding: 10px;
+            border: 1px solid #cfd8dc;
+            border-radius: 6px;
+            background: #f7fafc;
+            resize: vertical;
+        }
+        button {
+            background: #1a2330;
+            color: #fff;
+            border: none;
+            padding: 12px 0;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2b3a50;
+        }
+        .privacy-link {
+            display: block;
+            text-align: right;
+            margin-top: 32px;
+            color: #1a2330;
+            text-decoration: none;
+            font-size: 1em;
+        }
+        .privacy-link:hover {
+            text-decoration: underline;
+        }
+        .privacy-link-title {
+            font-size: 1.5em;
+            color: #1a2330;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .privacy-link-title:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            border: none;
+            border-top: 2px solid #e0e4ea;
+            margin: 24px 0 32px 0;
+        }
+        @media (max-width: 600px) {
+            .content, .studio-photo {
+                padding: 12px;
+                width: 98%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Icecube</h1>
+        <p>App Development Studio</p>
+    </div>
+    <img class="studio-photo" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=80" alt="Development Studio Photo">
+    <div class="content">
+        <h2>Contact Us</h2>
+        <form action="mailto:apps@wyrs.ch" method="POST" enctype="text/plain">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
+
+            <button type="submit">Send Request</button>
+        </form>
+        <div class="divider"></div>
+        <a class="privacy-link-title" href="privacy-policy.html" target="_blank">Privacy Policy of our Apps</a>
+    </div>
+</body>
+</html>
